@@ -2,16 +2,16 @@
 # The public diskless sandbox on the cloud server (docs/cloud.md): run as
 # admin by tools/cloud/sandbox (with the page) or setup.rc (without), the
 # repo and the page through /mnt/term:  rc sandbox.rc REPO [SITE]
-#   rc-httpd          the pages only, no WebSocket (Plan2001's select-handler
-#                     with $pagesonly, its web /sys/lib/sandbox; D7)
-#   /sys/lib/sandbox  the wasm32 machine's page (SITE, tools/cloud/sandbox)
+#   rc-httpd          the pages only, no WebSocket (Plan2001's select-handler,
+#                     its web /sys/lib/sandbox)
+#   /sys/lib/sandbox  the wasm32 machine's page (SITE, tools/cloud/sandbox:
+#                     Monolith's)
 #   acmechallenge     acmed -e: dns-01 in this machine's own zone; a name
 #                     outside it through its CNAME (Cloudflare):
 #                     _acme-challenge.plan2001.com ->
 #                     _acme-challenge.cpu.plan2001.com
 #   certrenew         Let's Encrypt for plan2001.com and *.cpu.plan2001.com
-#   tcp443            https: the sandbox only, as the last step - the
-#                     Monolith apps (*.cpu.plan2001.com) are served no more
+#   tcp443            https: the sandbox only, as the last step
 rfork e
 repo=$1
 site=$2
@@ -21,7 +21,9 @@ fn step { echo '###' $* }
 
 step rc-httpd: the Plan2001 site
 mkdir -p /rc/bin/rc-httpd/handlers
-cp $repo/plan2001/rc/bin/rc-httpd/select-handler /rc/bin/rc-httpd/select-handler || fail select-handler
+# not over Monolith's (the accounts site: its select-handler adds webterm's WebSockets)
+if(! grep -s webterm /rc/bin/rc-httpd/select-handler >[2]/dev/null)
+	cp $repo/plan2001/rc/bin/rc-httpd/select-handler /rc/bin/rc-httpd/select-handler || fail select-handler
 cp $repo/plan2001/rc/bin/rc-httpd/handlers/plan2001-static /rc/bin/rc-httpd/handlers/plan2001-static || fail plan2001-static
 chmod 775 /rc/bin/rc-httpd/select-handler /rc/bin/rc-httpd/handlers/plan2001-static
 
@@ -91,7 +93,7 @@ certrenew
 tail -3 /sys/log/certrenew
 
 step https: the sandbox only (tcp443)
-# not over Plan2001's accounts (tools/cloud/accounts.rc): its tcp443 is the whole site
+# not over the accounts site (Monolith's tools/cloud/accounts.rc): its tcp443 is the whole site
 if(test -e /rc/bin/service/tcp443 && grep -s plan2001/web /rc/bin/service/tcp443){
 	echo tcp443 is the accounts site: kept
 	echo SANDBOX-DONE

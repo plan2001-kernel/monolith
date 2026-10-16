@@ -2,7 +2,8 @@
 # Plan2001's tree (docs/plan9-wasm32.md): 9front's release as the repo has
 # it (subset/9front) with plan2001/ laid over it - new files, and 9front's
 # files Plan2001 changes, whole.  The tree in 9front's root layout: /sys,
-# /rc, /$objtype ... - the native build here (tools/native-wasm32).
+# /rc, /$objtype ... - the native build here (and Monolith's
+# tools/native-wasm32, which lays its own wasm32 files over it).
 #   tools/tree [DIR]     default build/tree, made anew
 set -e
 here=$(cd "$(dirname "$0")" && pwd); root=$(dirname "$here")

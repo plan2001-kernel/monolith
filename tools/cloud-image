@@ -21,7 +21,9 @@
 #   renewal, auth/rcpu/exportfs only from the local network and WireGuard,
 #   the administrators' WireGuard tunnel (tools/cloud/wg-admin).
 # Then it boots the result and checks it: logins, the tunnel, the port
-# guard, https: the wasm32 machine's page and the apps' origins (D7).
+# guard, https.  The browser's side (the wasm32 machine's page, the apps,
+# accounts) is Monolith's: its tools/cloud/accounts, tools/cloud/sandbox
+# here with its page.
 #
 # The local CPU server VM (tools/vm) is stopped: one VM at a time.
 set -e
@@ -32,7 +34,7 @@ base=${BASE:-$root/build/oci/cpu-oci.qcow2}
 img=$root/build/oci/cloud.qcow2
 out=$root/build/oci/cpu-amd64-poc1.qcow2
 public=${PUBLIC:-82.70.55.84}
-T=$root/monolith/build/9pterm/9pterm
+T=$root/tools/9pterm
 sock=$HOME/.cache/9pterm-poc1.sock
 run9() { "$here/9run" "$@"; }
 say() { echo "cloud-image: $*"; }
@@ -40,8 +42,6 @@ die() { echo "cloud-image: FAILED: $*" >&2; exit 1; }
 for f in "$base" "$root/build/amd64/9pc64" "$root/build/amd64/bootx64.efi" "$T"; do
 	[ -s "$f" ] || die "no $f"
 done
-# the wasm32 machine's page, which setup.rc installs (tools/cpu-live.rc pages)
-"$root/monolith/tools/pages" >/dev/null || die "pages (monolith/tools/pages)"
 
 # secrets, here only
 mkdir -p "$sec"; chmod 700 "$sec"
@@ -113,12 +113,9 @@ trap '"$here/cloud/wg-admin" down >/dev/null 2>&1 || true' EXIT
 sleep 3
 "$T" -h 10.201.0.1 -a 'tcp!10.201.0.1!567' -u admin -P "$sec/admin.pass" -W 20 -T 60 \
 	-c "rc /mnt/term$here/cloud/check.rc" | tee "$root/build/oci/check.log" | grep -q CHECK-DONE || die "check (build/oci/check.log)"
-curl -sk https://127.0.0.1:17443/ | grep -q 'platform.js' || die https
-# the apps' origins: the server names each origin's app (rc-httpd's /app, as webterm decides it)
-for a in acme term; do
-	got=$(curl -sk --resolve "$a.localhost:17443:127.0.0.1" "https://$a.localhost:17443/app")
-	[ "$got" = "$a" ] || die "https: $a.localhost's app is '$got'"
-done
+# https answers (rc-httpd behind tlssrv; the pages are Monolith's)
+code=$(curl -sk -o /dev/null -w '%{http_code}' https://127.0.0.1:17443/) || true
+case $code in [2-4][0-9][0-9]) ;; *) die "https: $code" ;; esac
 "$here/cloud/wg-admin" down >/dev/null
 halt
 

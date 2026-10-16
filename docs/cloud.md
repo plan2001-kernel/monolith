@@ -1,5 +1,11 @@
 # Plan2001 pilvessä
 
+> **16.10.2026:** wasm32-kone, selainpalvelut (webterm, signupd,
+> passkeyd, sovellusten originit), drawterm ja 9pterm siirrettiin
+> Monolithiin (`docs/plan9-wasm32.md`). Alla mainitut `monolith/`-polut,
+> `docs/app-origins.md`, `docs/webauthn.md` ja vastaavat ovat nyt siellä.
+> Tämä dokumentti on historiaa siltä osin.
+
 Tavoite: Plan2001 asentuu pilveen (ja mille tahansa uudelle raudalle) ilman
 käsityötä. Ensimmäinen yritys (29.9.): sillin CPU-palvelimen levy Oracle
 Cloudin koneelle. Tämä dokumentti kirjaa, mikä siinä ei toiminut

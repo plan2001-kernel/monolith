@@ -1,5 +1,11 @@
 # CPU-palvelin ja laskentapooli
 
+> **16.10.2026:** wasm32-kone, selainpalvelut (webterm, signupd,
+> passkeyd, sovellusten originit), drawterm ja 9pterm siirrettiin
+> Monolithiin (`docs/plan9-wasm32.md`). Alla mainitut `monolith/`-polut,
+> `docs/app-origins.md`, `docs/webauthn.md` ja vastaavat ovat nyt siellä.
+> Tämä dokumentti on historiaa siltä osin.
+
 > Plan2001:n CPU-palvelin ei ole kone, jossa suurin laskentateho on. Se on
 > kone, joka omistaa laskentaympäristön. Käyttäjien päätteet eivät ole
 > vain terminaaleja, vaan CPU-palvelimeen dynaamisesti liittyviä

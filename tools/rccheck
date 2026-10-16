@@ -6,8 +6,8 @@ command, the function).  The rc is plan9port's: $PLAN9/bin/rc, or rc on
 PATH.  Prints FAIL FILE: rc's error for each that does not parse; exit 1
 if any.
   tools/rccheck FILE...
-  tools/rccheck            the repo's rc scripts (the machine's /boot, rc-httpd's site,
-                           the apps, tools/*.rc, tools/cloud/*.rc, the installer)
+  tools/rccheck            the repo's rc scripts (rc-httpd's site, glenda's profile,
+                           tools/*.rc, tools/cloud/*.rc, the installer)
 """
 import glob, os, re, shutil, subprocess, sys
 
@@ -35,10 +35,8 @@ def strip_heredocs(text):
 
 files = sys.argv[1:]
 if not sys.argv[1:]:
-	pats = ['plan2001/sys/src/9/wasm32/init', 'plan2001/sys/src/9/wasm32/disk', 'plan2001/sys/src/9/wasm32/secstore', 'plan2001/sys/src/9/wasm32/console',
-		'plan2001/sys/src/9/wasm32/app', 'plan2001/sys/src/9/wasm32/login', 'plan2001/sys/src/9/wasm32/rconnect.app',
-		'plan2001/rc/bin/rc-httpd/select-handler', 'plan2001/rc/bin/rc-httpd/handlers/*',
-		'plan2001/rc/bin/apps', 'plan2001/usr/glenda/lib/profile', 'plan2001/rc/bin/inst/*', 'plan2001/lib/app/*/image', 'plan2001/lib/app/*/namespace',
+	pats = ['plan2001/rc/bin/rc-httpd/select-handler', 'plan2001/rc/bin/rc-httpd/handlers/*',
+		'plan2001/usr/glenda/lib/profile', 'plan2001/rc/bin/inst/*',
 		'tools/*.rc', 'tools/cloud/*.rc']
 	files = sorted(f for p in pats for f in glob.glob(os.path.join(root, p)))
 bad = 0

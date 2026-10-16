@@ -21,7 +21,7 @@ img=$1
 sec=${PLAN2001_CACHE:-$HOME/.cache/plan2001}/cloud
 host=${HOST:-82.70.55.84} port=${PORT:-443}
 admin=${ADMIN:-10.201.0.1}; auth=${AUTH:-tcp!$admin!567}
-T=$root/monolith/build/9pterm/9pterm
+T=$root/tools/9pterm
 p9() { "$T" -h "$admin" -a "$auth" -u admin -P "$sec/admin.pass" -W 20 -T "${TMO:-60}" -c "$1"; }
 
 w=$root/build/reimage; mkdir -p "$w"

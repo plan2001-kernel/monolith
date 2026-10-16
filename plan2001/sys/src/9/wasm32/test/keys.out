@@ -1,4 +1,0 @@
-ticks in it: ok
-% echo äåö $sysname
-äåö wasm32
-% exit

@@ -4,7 +4,7 @@
  * WebSocket /17030) and run jobs; users give jobs through the file system
  * crsrv posts (/srv/compute): the server's view is /global/compute, and an
  * app's namespace file mounts it on /compute for its processes
- * (docs/app-origins.md):
+ * (Monolith's docs/app-origins.md):
  *
  *	cc	open, write a job, read its result (rcc)
  *	status	crs N workers N credits N queued N running N done N verified N

@@ -9,8 +9,7 @@ here=$(cd "$(dirname "$0")" && pwd); root=$(dirname "$(dirname "$here")")
 live=$(cd "${1:-$HOME/plan9-wasm32/build/dist/live}" && pwd)
 admin=${2:-10.201.0.1}
 sec=${PLAN2001_CACHE:-$HOME/.cache/plan2001}/cloud
-T=$root/monolith/build/9pterm/9pterm
-[ -x "$T" ] || "$root/monolith/tools/build" >/dev/null
+T=$root/tools/9pterm
 [ -s "$live/plan9-wasm32.iso" ] || { echo "plan9-wasm32: no $live/plan9-wasm32.iso (tools/dist there)" >&2; exit 1; }
 out=$("$T" -h "$admin" -a "tcp!$admin!567" -u admin -P "$sec/admin.pass" -W 20 -T "${TMO:-7200}" \
 	-c "rc /mnt/term$here/plan9-wasm32.rc /mnt/term$root /mnt/term$live" 2>&1 || true)

@@ -1,9 +1,0 @@
-ticks in it: ok
-% echo hi
-hi
-% echo äåö | wc -c
-      7
-% sleep 100
-% echo after the interrupt
-after the interrupt
-% exit

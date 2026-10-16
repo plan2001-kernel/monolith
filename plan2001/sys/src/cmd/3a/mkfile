@@ -1,8 +1,0 @@
-</$objtype/mkfile
-
-TARG=3a
-OFILES=\
-	3a.$O\
-
-BIN=/$objtype/bin
-</sys/src/cmd/mkone

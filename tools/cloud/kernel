@@ -6,7 +6,7 @@ set -e
 here=$(cd "$(dirname "$0")" && pwd); root=$(dirname "$(dirname "$here")")
 admin=${1:-10.201.0.1}
 sec=${PLAN2001_CACHE:-$HOME/.cache/plan2001}/cloud
-T=$root/monolith/build/9pterm/9pterm
+T=$root/tools/9pterm
 p9() { "$T" -h "$admin" -a "tcp!$admin!567" -u admin -P "$sec/admin.pass" -W 20 -T "${TMO:-120}" -c "$1"; }
 # the reboot ends the connection: what it said is what counts
 out=$(TMO=60 p9 "rc /mnt/term$here/kernel.rc /mnt/term$root" 2>&1 || true)

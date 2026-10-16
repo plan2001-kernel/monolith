@@ -1,12 +1,8 @@
 #!/bin/rc
 # Runs ON a Plan2001 CPU server, through a 9pterm session (tools/cpu-live):
-# brings the compute pool and the browser side up to date from the repo at
-# $1 (a /mnt/term path), without a reboot:
-#   pages      the wasm32 machine's page (monolith/tools/pages, run on
-#              the client first) into /sys/lib/plan2001/web, Plan2001's
-#              rc-httpd site, and tcp17443 as rc-httpd behind tlssrv (D7)
-#   apps       plan2001/lib/app (policies and namespace files: the next session)
-#   webterm    compiled and installed: aux/listen runs it per connection
+# brings the compute pool up to date from the repo at $1 (a /mnt/term
+# path), without a reboot (the browser's side - the wasm32 machine's page,
+# the apps, webterm - is Monolith's, its own tools/cpu-live):
 #   rcc        compiled and installed
 #   crsrv      compiled, installed and restarted with the arguments of its
 #              line in /cfg/$sysname/cpustart; CRs reconnect by themselves
@@ -17,46 +13,13 @@ repo=$1
 shift
 what=$*
 if(~ $#what 0)
-	what=(pages apps webterm rcc crsrv)
+	what=(rcc crsrv)
 fn want { ~ $1 $what }
 t=/tmp/cpulive.$pid
 mkdir -p $t
 fn fail { echo CPU-LIVE FAILED: $*; rm -rf $t; exit $1 }
 
-if(want pages){
-	# built on the client: monolith/tools/pages (its build/pages, with .gz)
-	test -s $repo/monolith/build/pages/index.html || fail pages: run monolith/tools/pages first
-	mkdir -p /sys/lib/plan2001/web /rc/bin/rc-httpd/handlers
-	for(f in `{ls $repo/monolith/build/pages}){
-		cp $f /sys/lib/plan2001/web/ || fail pages
-	}
-	chmod 664 /sys/lib/plan2001/web/*	# the host owner's group keeps them up to date
-	cp $repo/plan2001/rc/bin/rc-httpd/select-handler /rc/bin/rc-httpd/select-handler || fail select-handler
-	cp $repo/plan2001/rc/bin/rc-httpd/handlers/plan2001-static /rc/bin/rc-httpd/handlers/plan2001-static || fail plan2001-static
-	chmod 775 /rc/bin/rc-httpd/select-handler /rc/bin/rc-httpd/handlers/plan2001-static
-	if(! grep -s rc-httpd /rc/bin/service/tcp17443 >[2]/dev/null){
-		crt=/sys/lib/tls/monolith.pem
-		{
-			echo '#!/bin/rc'
-			echo '. /rc/bin/localonly $3'
-			echo 'exec tlssrv -c '$crt' /rc/bin/rc-httpd/rc-httpd'
-		} >/rc/bin/service/tcp17443 && chmod 775 /rc/bin/service/tcp17443 || fail tcp17443
-	}
-	echo pages: `{ls /sys/lib/plan2001/web}
-}
-if(want apps){
-	for(a in `{ls $repo/plan2001/lib/app}){
-		a=`{basename $a}
-		mkdir -p /lib/app/$a
-		for(f in `{ls $repo/plan2001/lib/app/$a}){
-			cp $f /lib/app/$a/ || fail apps
-		}
-		chmod 664 /lib/app/$a/*
-		test -e /lib/app/$a/image && chmod 775 /lib/app/$a/image
-	}
-	echo apps: `{ls /lib/app}
-}
-for(p in webterm rcc crsrv){
+for(p in rcc crsrv){
 	if(want $p){
 		@{ cd $t && cp $repo/plan2001/sys/src/cmd/$p.c . && 6c -FTVw $p.c && 6l -o $p $p.6 } || fail $p
 		cp $t/$p /amd64/bin/$p || fail install $p

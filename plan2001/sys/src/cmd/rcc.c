@@ -8,7 +8,7 @@
  * /$objtype/include from crsrv, and compiles in a directory of the same
  * name as this one, so the object is the same as 6c's here.  With no
  * CR in /compute - the pool as the process's namespace has it (its app's
- * namespace file, docs/app-origins.md): none there, none to use - rcc
+ * namespace file, Monolith's docs/app-origins.md): none there, none to use - rcc
  * runs 6c.
  *	NPROC=8 mk 'CC=rcc'
  */

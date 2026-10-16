@@ -1,2 +1,0 @@
-# what the app's processes see, added to the user's namespace
-# (docs/app-origins.md); sourced by rc before the image

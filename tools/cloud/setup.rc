@@ -35,8 +35,23 @@ unmount /n/9fat
 
 step 'Plan2001 system headers (the pool''s CRs get /sys/include from crsrv)'
 cp $repo/plan2001/sys/include/bootinfo.h /sys/include/bootinfo.h || fail bootinfo.h
-step the compute pool and the browser side
-rc $repo/tools/cpu-live.rc $repo pages apps webterm rcc crsrv || fail cpu-live
+step the compute pool
+rc $repo/tools/cpu-live.rc $repo rcc crsrv || fail cpu-live
+
+step 'https on 17443 (local only): rc-httpd behind tlssrv, its site /sys/lib/plan2001/web'
+# the site's pages are another project's (Monolith's tools/cloud/accounts)
+mkdir -p /sys/lib/plan2001/web /rc/bin/rc-httpd/handlers
+# not over Monolith's (the accounts site: its select-handler adds webterm's WebSockets)
+if(! grep -s webterm /rc/bin/rc-httpd/select-handler >[2]/dev/null)
+	cp $repo/plan2001/rc/bin/rc-httpd/select-handler /rc/bin/rc-httpd/select-handler || fail select-handler
+cp $repo/plan2001/rc/bin/rc-httpd/handlers/plan2001-static /rc/bin/rc-httpd/handlers/plan2001-static || fail plan2001-static
+chmod 775 /rc/bin/rc-httpd/select-handler /rc/bin/rc-httpd/handlers/plan2001-static
+if(! grep -s rc-httpd /rc/bin/service/tcp17443 >[2]/dev/null){
+	{
+		echo '#!/bin/rc'
+		echo 'exec tlssrv -c /sys/lib/tls/monolith.pem /rc/bin/rc-httpd/rc-httpd'
+	} >/rc/bin/service/tcp17443 && chmod 775 /rc/bin/service/tcp17443 || fail tcp17443
+}
 
 step services this machine gives only to itself, its network and WireGuard
 cat >/rc/bin/localonly <<'X'
@@ -75,10 +90,6 @@ step DNS: authoritative for cpu.plan2001.com
 	echo '	mb=hostmaster@plan2001.com'
 	echo '	caa=letsencrypt.org'
 	echo 'dom=cpu.plan2001.com ip='^$public
-	for(a in `{ls $repo/plan2001/lib/app}){
-		a=`{basename $a}
-		echo 'dom='^$a^'.cpu.plan2001.com ip='^$public
-	}
 } >/tmp/ndb && cp /tmp/ndb /lib/ndb/local || fail ndb
 grep -s dnschallenge /lib/ndb/local || fail no dnschallenge in the database
 test -e /lib/ndb/dnschallenge || { touch /lib/ndb/dnschallenge && chmod 664 /lib/ndb/dnschallenge }
