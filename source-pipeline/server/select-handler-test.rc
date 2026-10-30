@@ -1,0 +1,12 @@
+#!/bin/rc
+# Install only in the disposable local QEMU overlay.
+if(~ $#web 0)
+	web=/sys/lib/plan2001/web
+switch($location){
+case /sp/api/v1/*
+	SP_ROOT=/sys/lib/plan2001/source-pipeline exec /bin/aux/spserver
+case /sp/*
+	exec /rc/bin/rc-httpd/handlers/plan2001-static $web
+case *
+	exec /rc/bin/rc-httpd/handlers/plan2001-static $web
+}
