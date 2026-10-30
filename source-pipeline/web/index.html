@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source Pipeline</title>
+<style>
+:root{color-scheme:dark light;font:16px/1.5 system-ui,sans-serif}body{max-width:58rem;margin:2rem auto;padding:0 1rem}
+h1{margin-bottom:.25rem}.muted{color:GrayText}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:1rem}
+section{border:1px solid #8886;border-radius:.6rem;padding:1rem;overflow-wrap:anywhere}dt{font-weight:650;margin-top:.65rem}dd{margin-left:0}
+.state{font-size:1.3rem;font-weight:700}.error{color:#b42318}ul{padding-left:1.3rem}
+</style>
+<body>
+<h1>Source Pipeline</h1>
+<p class="muted">Serial source handoff status · refreshes every 5 seconds</p>
+<div class="grid">
+<section><h2>Pipeline</h2><div id="state" class="state">Loading…</div><dl>
+<dt>Active agent</dt><dd id="active">—</dd><dt>Task</dt><dd id="task">—</dd>
+<dt>Turns</dt><dd id="turns">—</dd><dt>Last test</dt><dd id="test">—</dd>
+<dt>Latest error</dt><dd id="error">—</dd></dl></section>
+<section><h2>Source</h2><dl><dt>Current source ID</dt><dd id="source">—</dd>
+<dt>SHA-256</dt><dd id="sha">—</dd></dl><h2>Agent order</h2><ol id="agents"></ol></section>
+</div>
+<section><h2>Task queue</h2><ul id="tasks"><li>Loading…</li></ul></section>
+<p id="updated" class="muted" role="status"></p>
+<script>
+const byId = id => document.getElementById(id);
+async function refresh(){
+  try {
+    const [s,t] = await Promise.all([
+      fetch('/sp/api/v1/status',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error(`status ${r.status}`);return r.json()}),
+      fetch('/sp/api/v1/tasks',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error(`tasks ${r.status}`);return r.json()})
+    ]);
+    byId('state').textContent=s.state;
+    byId('active').textContent=s.active_agent||'—';
+    byId('task').textContent=s.task||'—';
+    byId('turns').textContent=s.turns;
+    byId('test').textContent=s.test_result||'—';
+    byId('error').textContent=s.last_error||'—';
+    byId('error').className=s.last_error?'error':'';
+    byId('source').textContent=s.current||'—';
+    byId('sha').textContent=s.sha256||'—';
+    byId('agents').replaceChildren(...(s.agent_order||[]).map(x=>{const li=document.createElement('li');li.textContent=x;return li}));
+    byId('tasks').replaceChildren(...(t.tasks||[]).map(x=>{const li=document.createElement('li');li.textContent=`${x.id}: ${x.title}`;return li}));
+    byId('updated').textContent=`Updated ${new Date().toLocaleTimeString()}`;
+  } catch(e) { byId('updated').textContent=`Status unavailable: ${e.message}`; }
+}
+refresh(); setInterval(refresh,5000);
+</script>
+</body>
+</html>
