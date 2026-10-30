@@ -1,0 +1,17 @@
+#!/bin/bash
+# Install the harmless test MCP endpoint at plan2001.com/mcp (and /mpc)
+# over the administrators' WireGuard tunnel.  It changes only the handler
+# and one rc-httpd route; it does not run the full site setup.
+set -e
+here=$(cd "$(dirname "$0")" && pwd)
+root=$(dirname "$(dirname "$here")")
+admin=${1:-10.201.0.1}
+sec=${PLAN2001_CACHE:-$HOME/.cache/plan2001}/cloud
+T=$root/monolith/build/9pterm/9pterm
+[ -x "$T" ] || "$root/monolith/tools/build" >/dev/null
+[ -r "$sec/admin.pass" ] || { echo "mcp-test: no $sec/admin.pass" >&2; exit 1; }
+out=$("$T" -h "$admin" -a "tcp!$admin!567" -u admin -P "$sec/admin.pass" -W 20 -T "${TMO:-900}" \
+	-c "rc /mnt/term$here/mcp-test.rc /mnt/term$root" 2>&1 || true)
+echo "$out"
+echo "$out" | grep -q MCP-TEST-DONE || { echo "mcp-test: install failed" >&2; exit 1; }
+echo "mcp-test: https://plan2001.com/mcp (alias: /mpc)"

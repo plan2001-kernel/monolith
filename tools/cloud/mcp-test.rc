@@ -1,0 +1,31 @@
+#!/bin/rc
+# Install only the Plan2001 test MCP endpoint on the cloud CPU server.
+# Run through tools/cloud/mcp-test, over the administrators' WireGuard
+# tunnel.  This leaves the rest of the site and its services alone.
+rfork e
+repo=$1
+~ $#repo 1 || { echo 'usage: rc mcp-test.rc REPO'; exit usage }
+test -r $repo/plan2001/sys/src/cmd/aux/mcptest.c || { echo 'no mcptest.c'; exit missing-source }
+test -r $repo/plan2001/rc/bin/rc-httpd/select-handler || { echo 'no select-handler'; exit missing-handler }
+t=/tmp/mcptest.$pid
+mkdir -p $t /sys/lib/plan2001/old/mcptest /sys/lib/plan2001/mcptest-tmp || exit setup
+chmod 777 /sys/lib/plan2001/mcptest-tmp || exit temp-directory
+fn fail {
+	echo MCP-TEST FAILED: $*
+	rm -rf $t
+	exit 1
+}
+cp $repo/plan2001/sys/src/cmd/aux/mcptest.c $t/mcptest.c || fail source
+@{
+	cd $t && 6c -FTVw mcptest.c && 6l -o mcptest mcptest.6
+} || fail compile
+if(test -e /bin/aux/mcptest)
+	cp /bin/aux/mcptest /sys/lib/plan2001/old/mcptest/mcptest.`{date -n} || fail backup-binary
+if(test -e /rc/bin/rc-httpd/select-handler)
+	cp /rc/bin/rc-httpd/select-handler /sys/lib/plan2001/old/mcptest/select-handler.`{date -n} || fail backup-handler
+cp $t/mcptest /bin/aux/mcptest.new || fail install-binary
+chmod 775 /bin/aux/mcptest.new && mv /bin/aux/mcptest.new /bin/aux/mcptest || fail activate-binary
+cp $repo/plan2001/rc/bin/rc-httpd/select-handler /rc/bin/rc-httpd/select-handler.new || fail install-handler
+chmod 775 /rc/bin/rc-httpd/select-handler.new && mv /rc/bin/rc-httpd/select-handler.new /rc/bin/rc-httpd/select-handler || fail activate-handler
+rm -rf $t
+echo MCP-TEST-DONE

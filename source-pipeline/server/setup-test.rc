@@ -1,0 +1,21 @@
+#!/bin/rc
+# Install test-only state into a disposable local Plan 9 VM.
+# Usage: rc setup-test.rc HOST_FIXTURE_DIR SP_ROOT
+rfork e
+fixture=$1
+root=$2
+mkdir -p $root/source $root/stage || exit 'no test root'
+mkdir -p /sys/lib/plan2001/web/sp || exit 'no test web root'
+cp $root/web/index.html /sys/lib/plan2001/web/sp/index.html || exit 'no test status page'
+cp $fixture/agents.cfg $root/agents.cfg || exit 'no agents.cfg'
+cp $fixture/tasks.cfg $root/tasks.cfg || exit 'no tasks.cfg'
+cp $fixture/state.0 $root/state.0 || exit 'no state.0'
+cp $fixture/seed.tar.gz $root/source/seed.tar.gz || exit 'no seed source'
+# rc-httpd's GET and POST handlers use different local identities on the test
+# image. Keep this data tree outside the web root; HTTP writes still require
+# the test bearer token. Production permissions must be derived from its rc-httpd
+# users before any deployment.
+chmod 777 $root $root/source $root/stage
+chmod 644 $root/agents.cfg $root/state.0 $root/source/seed.tar.gz
+chmod 666 $root/tasks.cfg
+echo SP-TEST-SETUP-DONE
